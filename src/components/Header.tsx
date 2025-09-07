@@ -23,6 +23,17 @@ const Header: React.FC = () => {
     return () => clearInterval(timer);
   }, []);
 
+  // Clean up URL from cache-busting param after reloads
+  React.useEffect(() => {
+    try {
+      const url = new URL(window.location.href);
+      if (url.searchParams.has('logged_out')) {
+        url.searchParams.delete('logged_out');
+        window.history.replaceState({}, '', url.toString());
+      }
+    } catch {}
+  }, []);
+
   const handleLogout = async () => {
     try {
       await logout();
@@ -34,9 +45,8 @@ const Header: React.FC = () => {
         window.localStorage?.clear?.();
         window.sessionStorage?.clear?.();
       } catch {}
-      // Hard redirect with cache-busting to avoid any stale state
-      const target = `${window.location.origin}/?logged_out=${Date.now()}`;
-      window.location.replace(target);
+      // Hard redirect to root (no cache-busting param)
+      window.location.replace(`${window.location.origin}/`);
     }
   };
 

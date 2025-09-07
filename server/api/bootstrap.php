@@ -40,18 +40,32 @@ if ($CORS_ALLOWED_ORIGINS === '*') {
   $allowOrigin = '*';
 } else {
   $allowed = array_map('trim', explode(',', $CORS_ALLOWED_ORIGINS));
-  // Allow explicit matches, including literal 'null' origin if configured
+  // Allow explicit matches
   if ($origin !== '' && in_array($origin, $allowed, true)) {
     $allowOrigin = $origin;
-  } elseif ($origin === '' && !empty($BASE_URL)) {
-    // No Origin header (e.g., same-origin/fetch, curl) -> fall back to BASE_URL
-    $allowOrigin = $BASE_URL;
-  } elseif ($origin === 'null' && in_array('null', $allowed, true)) {
-    $allowOrigin = 'null';
+  } else {
+    // Additional allowances:
+    // - literal 'null' origin if configured
+    if ($origin === 'null' && in_array('null', $allowed, true)) {
+      $allowOrigin = 'null';
+    }
+    // - Vercel preview domains (*.vercel.app)
+    if (!$allowOrigin && $origin) {
+      $host = parse_url($origin, PHP_URL_HOST) ?: '';
+      if (preg_match('/^[a-z0-9-]+\.vercel\.app$/i', $host)) {
+        $allowOrigin = $origin;
+      }
+    }
+    // - Fallback for no Origin header: use BASE_URL
+    if (!$allowOrigin && $origin === '' && !empty($BASE_URL)) {
+      $allowOrigin = $BASE_URL;
+    }
   }
 }
 header('Access-Control-Allow-Credentials: true');
-header('Access-Control-Allow-Origin: ' . ($allowOrigin ?: ''));
+if ($allowOrigin !== '') {
+  header('Access-Control-Allow-Origin: ' . $allowOrigin);
+}
 header('Vary: Origin');
 header('Access-Control-Allow-Methods: GET, POST, PUT, PATCH, DELETE, OPTIONS');
 header('Access-Control-Allow-Headers: Content-Type, Authorization, If-Match, X-Requested-With');

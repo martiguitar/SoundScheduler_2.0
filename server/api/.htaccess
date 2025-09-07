@@ -14,13 +14,14 @@
   SetEnvIfNoCase Origin "^http://127.0.0.1:5173$" ORIGIN_OK=1
   SetEnvIfNoCase Origin "^https://tonbandleipzig\.de$" ORIGIN_OK=1
   SetEnvIfNoCase Origin "^https://tonbandleipzig\.de\.w01fc61e\.kasserver\.com$" ORIGIN_OK=1
+  # Vercel app domains (project and previews)
+  SetEnvIfNoCase Origin "^https://sound-scheduler-2-0\.vercel\.app$" ORIGIN_OK=1
+  SetEnvIfNoCase Origin "^https://[a-z0-9-]+\.vercel\.app$" ORIGIN_OK=1
   # Allow literal null origin (e.g., file:// contexts) when needed
   SetEnvIfNoCase Origin "^null$" ORIGIN_OK=1
 
   Header always set Access-Control-Allow-Origin "expr=%{req:Origin}" env=ORIGIN_OK
 </IfModule>
 
-# Respond OK for OPTIONS without body
+## Let PHP handle OPTIONS (bootstrap.php returns 204 with proper CORS headers)
 RewriteEngine On
-RewriteCond %{REQUEST_METHOD} =OPTIONS
-RewriteRule ^ - [R=204,L]
