@@ -1,7 +1,7 @@
 // Simple API helper for PHP backend
-// Uses VITE_API_BASE or defaults to '/server/api'
+// Uses relative paths with Vite proxy
 
-export const API_BASE = import.meta.env.VITE_API_BASE || '/server/api';
+export const API_BASE = '/api';
 
 async function parseResponse<T>(res: Response, method: string, path: string): Promise<T> {
   // No content
@@ -28,7 +28,7 @@ async function parseResponse<T>(res: Response, method: string, path: string): Pr
 export async function apiGet<T>(path: string): Promise<T> {
   const res = await fetch(`${API_BASE}${path}`, {
     method: 'GET',
-    credentials: 'include',
+    credentials: 'omit', // Preview: keine Cookies erzwingen
     headers: {
       Accept: 'application/json',
     },
@@ -40,7 +40,7 @@ export async function apiPost<T>(path: string, body: any, headers: Record<string
   const isForm = body instanceof FormData;
   const res = await fetch(`${API_BASE}${path}`, {
     method: 'POST',
-    credentials: 'include',
+    credentials: 'omit', // Preview: keine Cookies erzwingen
     headers: isForm ? headers : { 'Content-Type': 'application/json', ...headers },
     body: isForm ? body : JSON.stringify(body),
   });
