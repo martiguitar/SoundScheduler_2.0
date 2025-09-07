@@ -1,0 +1,26 @@
+# CORS headers for API (handles OPTIONS at Apache level)
+<IfModule mod_headers.c>
+  Header always set Access-Control-Allow-Credentials "true"
+  Header always set Access-Control-Allow-Methods "GET, POST, PUT, PATCH, DELETE, OPTIONS"
+  Header always set Access-Control-Allow-Headers "Content-Type, Authorization, If-Match, X-Requested-With, Accept, Origin, Cache-Control"
+  Header always set Vary "Origin"
+  Header always set Access-Control-Max-Age "86400"
+
+  # Allow specific dev origins; add more if needed
+  # Capture the raw Origin header into an env var
+  SetEnvIfNoCase Origin "^(.*)$" REQ_ORIGIN=$1
+  SetEnvIfNoCase Origin "^http://localhost:5173$" ORIGIN_OK=1
+  SetEnvIfNoCase Origin "^https://localhost:5173$" ORIGIN_OK=1
+  SetEnvIfNoCase Origin "^http://127.0.0.1:5173$" ORIGIN_OK=1
+  SetEnvIfNoCase Origin "^https://tonbandleipzig\.de$" ORIGIN_OK=1
+  SetEnvIfNoCase Origin "^https://tonbandleipzig\.de\.w01fc61e\.kasserver\.com$" ORIGIN_OK=1
+  # Allow literal null origin (e.g., file:// contexts) when needed
+  SetEnvIfNoCase Origin "^null$" ORIGIN_OK=1
+
+  Header always set Access-Control-Allow-Origin "expr=%{req:Origin}" env=ORIGIN_OK
+</IfModule>
+
+# Respond OK for OPTIONS without body
+RewriteEngine On
+RewriteCond %{REQUEST_METHOD} =OPTIONS
+RewriteRule ^ - [R=204,L]
